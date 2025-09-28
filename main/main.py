@@ -1,3 +1,4 @@
+# main/main.py
 import logging
 import os
 import asyncio
@@ -43,9 +44,6 @@ async def handle_text_messages(update, context):
 async def post_init(application):
     """Post-initialization setup for bot commands."""
     try:
-        # Initialize the bot before setting commands
-        await application.bot.initialize()
-        
         commands = [
             ("start", "شروع کار با ربات"),
             ("cancel", "لغو عملیات جاری")
@@ -63,7 +61,6 @@ class HealthHandler(BaseHTTPRequestHandler):
         self.wfile.write(b'OK')
     
     def log_message(self, format, *args):
-        # Disable logging of health checks to reduce noise
         return
 
 def run_health_server():
@@ -80,7 +77,7 @@ def start_health_server():
     logger.info("🩺 Health check server started in background thread")
     return health_thread
 
-def setup_bot():
+def setup_application():
     """Setup and return the bot application"""
     Config.validate()
 
@@ -93,7 +90,7 @@ def setup_bot():
         socket.socket = socks.socksocket
         logger.info(f"🔗 Proxy set: {host}:{port}")
 
-    # Initialize application with connection pool size
+    # Initialize application
     application = Application.builder()\
         .token(Config.MAIN_BOT_TOKEN)\
         .post_init(post_init)\
@@ -115,54 +112,37 @@ def setup_bot():
 
     return application
 
-async def main_async():
-    """Main async function to run bot"""
+async def run_bot():
+    """Run the bot with proper event loop handling"""
     try:
-        # Start health server in separate thread
+        # Start health server
         start_health_server()
         
-        # Setup and start bot
-        application = setup_bot()
+        # Setup application
+        application = setup_application()
         logger.info("🤖 Starting bot in polling mode...")
         
-        # Run polling
+        # Run polling with proper configuration
         await application.run_polling(
             drop_pending_updates=True,
-            allowed_updates=["message", "callback_query"]
+            allowed_updates=["message", "callback_query"],
+            close_loop=False  # Important: don't close the loop in production
         )
         
     except Exception as e:
-        logger.error(f"❌ Error starting main bot: {e}")
+        logger.error(f"❌ Error in run_bot: {e}")
         raise
 
 def main():
-    """Main function that works in both development and production"""
-    # Check if we're in production (Render sets RENDER env var)
-    if os.getenv('RENDER') or os.getenv('PORT'):
-        # In production, use get_event_loop() since there's already a running loop
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # If loop is already running, create task
-                loop.create_task(main_async())
-            else:
-                # If loop exists but not running, run until complete
-                loop.run_until_complete(main_async())
-        except RuntimeError:
-            # If no loop exists, use asyncio.run()
-            asyncio.run(main_async())
-    else:
-        # In development, use simple run
-        try:
-            application = setup_bot()
-            logger.info("🤖 Starting bot in polling mode...")
-            application.run_polling(
-                drop_pending_updates=True,
-                allowed_updates=["message", "callback_query"]
-            )
-        except Exception as e:
-            logger.error(f"❌ Error starting main bot: {e}")
-            raise
+    """Main function with simplified event loop handling"""
+    try:
+        # Use asyncio.run() which handles event loop creation properly
+        asyncio.run(run_bot())
+    except KeyboardInterrupt:
+        logger.info("🛑 Bot stopped by user")
+    except Exception as e:
+        logger.error(f"❌ Fatal error: {e}")
+        raise
 
 if __name__ == "__main__":
     main()
