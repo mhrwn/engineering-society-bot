@@ -1,0 +1,62 @@
+from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+
+def create_main_keyboard():
+    """Create the main reply keyboard for the bot."""
+    keyboard = [
+        ["📖 درباره انجمن", "📅 رویدادها"],
+        ["🎓 کارگاه‌ها", "📞 تماس با ما"],
+        ["👤 مشاهده پروفایل", "💬 تماس با مدیر"],
+        ["📝 ثبت‌نام در رویداد"]
+    ]
+    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, is_persistent=True)
+
+def create_cancel_keyboard():
+    """Create cancel-only keyboard for registration process."""
+    keyboard = [["❌ لغو ثبت‌نام"]]
+    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
+
+def create_event_selection_keyboard(events):
+    """Create inline keyboard for event selection."""
+    keyboard = []
+    for event in events:
+        name, _, _, capacity, registered, _ = event
+        button_text = f"{name} ({registered}/{capacity})"
+        keyboard.append([InlineKeyboardButton(button_text, callback_data=f"event_{name}")])
+    keyboard.append([InlineKeyboardButton("❌ لغو ثبت‌نام", callback_data="cancel_registration")])
+    return InlineKeyboardMarkup(keyboard)
+
+def create_back_to_menu_keyboard():
+    """Create back to menu keyboard for profile view."""
+    keyboard = [["🔙 بازگشت به منو"]]
+    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
+
+def create_profile_management_keyboard(has_registrations):
+    """Create keyboard for profile management with cancellation option."""
+    if has_registrations:
+        keyboard = [
+            ["❌ انصراف از ثبت‌نام"],
+            ["🔙 بازگشت به منو"]
+        ]
+    else:
+        keyboard = [["🔙 بازگشت به منو"]]
+    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
+
+def create_registration_cancellation_keyboard(registrations):
+    """Create inline keyboard for registration cancellation."""
+    keyboard = []
+    for reg in registrations:
+        # اصلاح: افزایش تعداد متغیرها به 11
+        reg_id, _, full_name, _, _, _, event_name, reg_date, _, _, _ = reg
+        date_str = reg_date.strftime("%Y-%m-%d") if reg_date else "نامشخص"
+        button_text = f"❌ انصراف از {event_name} ({date_str})"
+        keyboard.append([InlineKeyboardButton(button_text, callback_data=f"cancel_reg_{reg_id}")])
+    keyboard.append([InlineKeyboardButton("🔙 بازگشت به پروفایل", callback_data="back_to_profile")])
+    return InlineKeyboardMarkup(keyboard)
+
+def create_confirmation_keyboard(registration_id):
+    """Create confirmation keyboard for cancellation."""
+    keyboard = [
+        [InlineKeyboardButton("✅ تایید انصراف", callback_data=f"confirm_cancel_{registration_id}")],
+        [InlineKeyboardButton("❌ انصراف از انصراف", callback_data="cancel_cancellation")]
+    ]
+    return InlineKeyboardMarkup(keyboard)
