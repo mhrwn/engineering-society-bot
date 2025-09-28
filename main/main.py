@@ -115,8 +115,8 @@ def setup_bot():
 
     return application
 
-async def main():
-    """Main function to run bot in production"""
+async def main_async():
+    """Main async function to run bot"""
     try:
         # Start health server in separate thread
         start_health_server()
@@ -135,24 +135,34 @@ async def main():
         logger.error(f"❌ Error starting main bot: {e}")
         raise
 
-def run_bot():
-    """Run the bot (for development without web server)"""
-    try:
-        application = setup_bot()
-        logger.info("🤖 Starting bot in polling mode...")
-        application.run_polling(
-            drop_pending_updates=True,
-            allowed_updates=["message", "callback_query"]
-        )
-    except Exception as e:
-        logger.error(f"❌ Error starting main bot: {e}")
-        raise
-
-if __name__ == "__main__":
+def main():
+    """Main function that works in both development and production"""
     # Check if we're in production (Render sets RENDER env var)
     if os.getenv('RENDER') or os.getenv('PORT'):
-        # Use asyncio.run() for production
-        asyncio.run(main())
+        # In production, use get_event_loop() since there's already a running loop
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If loop is already running, create task
+                loop.create_task(main_async())
+            else:
+                # If loop exists but not running, run until complete
+                loop.run_until_complete(main_async())
+        except RuntimeError:
+            # If no loop exists, use asyncio.run()
+            asyncio.run(main_async())
     else:
-        # Use simple run for development
-        run_bot()
+        # In development, use simple run
+        try:
+            application = setup_bot()
+            logger.info("🤖 Starting bot in polling mode...")
+            application.run_polling(
+                drop_pending_updates=True,
+                allowed_updates=["message", "callback_query"]
+            )
+        except Exception as e:
+            logger.error(f"❌ Error starting main bot: {e}")
+            raise
+
+if __name__ == "__main__":
+    main()
