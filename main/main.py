@@ -1,6 +1,7 @@
 import logging
 import os
 import asyncio
+import threading
 from telegram.ext import Application, MessageHandler, filters
 from main.handlers.start import register_start_handler
 from main.handlers.registration import register_registration_handler
@@ -54,9 +55,37 @@ async def post_init(application):
     except Exception as e:
         logger.error(f"❌ Error setting bot commands: {e}")
 
-async def health_check(request):
-    """Health check endpoint for Render"""
-    return web.Response(text="OK")
+def run_health_server():
+    """Run health check server in a separate thread"""
+    async def health_handler(request):
+        return web.Response(text="OK")
+    
+    async def create_app():
+        app = web.Application()
+        app.router.add_get('/health', health_handler)
+        app.router.add_get('/', health_handler)
+        return app
+    
+    async def run_server():
+        app = await create_app()
+        port = int(os.getenv('PORT', 10000))
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(runner, '0.0.0.0', port)
+        await site.start()
+        logger.info(f"🚀 Health check server running on port {port}")
+        # Keep server running forever
+        await asyncio.Future()
+    
+    # Create new event loop for the health server
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_server())
+    except KeyboardInterrupt:
+        pass
+    finally:
+        loop.close()
 
 def setup_bot():
     """Setup and return the bot application"""
@@ -93,32 +122,18 @@ def setup_bot():
 
     return application
 
-async def start_web_server():
-    """Start a simple web server for health checks"""
-    app = web.Application()
-    app.router.add_get('/health', health_check)
-    app.router.add_get('/', health_check)
-    
-    port = int(os.getenv('PORT', 10000))
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, '0.0.0.0', port)
-    await site.start()
-    logger.info(f"🚀 Health check server running on port {port}")
-    return runner
-
 async def main():
-    """Main function to run both bot and web server"""
+    """Main function to run bot"""
     try:
-        # Setup bot
+        # Start health server in separate thread
+        health_thread = threading.Thread(target=run_health_server, daemon=True)
+        health_thread.start()
+        logger.info("🩺 Health check server started in background thread")
+        
+        # Setup and start bot
         application = setup_bot()
-        
-        # Start web server for health checks
-        runner = await start_web_server()
-        
         logger.info("🤖 Starting bot in polling mode...")
         
-        # Start bot polling
         await application.run_polling(
             drop_pending_updates=True,
             allowed_updates=["message", "callback_query"]
@@ -127,10 +142,6 @@ async def main():
     except Exception as e:
         logger.error(f"❌ Error starting main bot: {e}")
         raise
-    finally:
-        # Cleanup
-        if 'runner' in locals():
-            await runner.cleanup()
 
 def run_bot():
     """Run the bot (for development without web server)"""

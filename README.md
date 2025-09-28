@@ -1,59 +1,104 @@
-# Engineering Society Bot
+```markdown
+# 🤖 ربات انجمن علمی مهندسی ساخت و تولید
 
-A modular Telegram bot for managing the Manufacturing Engineering Society at Mohaghegh Ardabili University.
+ربات هوشمند تلگرام برای مدیریت و تعامل با اعضای انجمن علمی مهندسی ساخت و تولید دانشگاه محقق اردبیلی
 
-## Project Structure
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![Telegram Bot](https://img.shields.io/badge/Telegram-Bot_API-green)
+![SQLAlchemy](https://img.shields.io/badge/ORM-SQLAlchemy-orange)
+
+## ✨ ویژگی‌های اصلی
+
+### 🤖 ربات کاربران
+- ✅ **تأیید عضویت خودکار** در کانال انجمن
+- ✅ **سیستم ثبت‌نام هوشمند** در رویدادها و کارگاه‌ها
+- ✅ **مدیریت پروفایل شخصی** کاربران
+- ✅ **نمایش اطلاعات انجمن** و راه‌های ارتباطی
+- ✅ **کیبوردهای فارسی** و رابط کاربری زیبا
+- ✅ **اعلان‌های خودکار** و یادآوری رویدادها
+
+## 🚀 راه‌اندازی فوری
+
+### پیش‌نیازها
+- پایتون ۳.۱۵ یا بالاتر
+- توکن ربات تلگرام از [@BotFather](https://t.me/BotFather)
+
+### نصب و اجرا
+
+```bash
+# کلون کردن پروژه
+git clone https://github.com/mhrwn/engineering-society-bot.git
+cd engineering-society-bot
+
+# نصب وابستگی‌ها
+pip install -r requirements.txt
+
+# کپی فایل تنظیمات
+cp .env.simple .env
+
+# ویرایش فایل تنظیمات (مقادیر واقعی را وارد کنید)
+nano .env
+
+# اجرای ربات
+./run_main.sh
+```
+
+
+## 🏗️ ساختار پروژه
 
 ```
 engineering-society-bot/
-├── database/          # Database models and manager
-│   ├── models.py     # Database schema definitions
-│   ├── manager.py    # Database operations
-├── main/             # Main bot implementation
-│   ├── handlers/     # Command and message handlers
-│   ├── utils/        # Utility functions
-│   ├── middleware/   # Middleware for channel verification
-├── admin/            # Admin bot implementation
-│   ├── handlers/     # Admin-specific handlers
-├── config.py         # Configuration settings
-├── .env              # Environment variables
-├── requirements.txt  # Python dependencies
-├── run_main.sh       # Script to run main bot
-├── run_admin.sh      # Script to run admin bot
-├── run_both.sh       # Script to run both bots
-└── stop_both.sh      # Script to stop both bots
+├── 📊 database/                 # مدیریت داده‌ها
+│   ├── models.py               # مدل‌های دیتابیس
+│   ├── manager.py              # عملیات پایگاه داده
+│   └── sample_data.py          # داده‌های نمونه
+├── 🤖 main/                    # ربات اصلی کاربران
+│   ├── handlers/               # مدیریت دستورات
+│   │   ├── start.py           # شروع کار با ربات
+│   │   ├── registration.py    # ثبت‌نام در رویدادها
+│   │   ├── profile.py         # مدیریت پروفایل
+│   │   ├── messaging.py       # سیستم پیام‌رسانی
+│   │   ├── about.py           # اطلاعات انجمن
+│   │   ├── events.py          # نمایش رویدادها
+│   │   ├── workshops.py       # مدیریت کارگاه‌ها
+│   │   └── contact.py         # اطلاعات تماس
+│   ├── utils/                  # ابزارهای کمکی
+│   │   ├── keyboards.py       # تولید کیبوردها
+│   │   ├── markdown.py        # فرمت‌نویسی پیام‌ها
+│   │   └── validators.py      # اعتبارسنجی داده‌ها
+│   ├── middleware/             # لایه‌های میانی
+│   │   └── channel_verify.py  # تأیید عضویت در کانال
+│   └── main.py                # فایل اجرایی ربات
+├── 👨‍💼 admin/                  # ربات مدیریت (آینده)
+├── 🔧 config.py               # تنظیمات مرکزی
+├── 📋 requirements.txt        # کتابخانه‌های مورد نیاز
+├── 🚀 run_main.sh             # اسکریپت اجرای ربات
+└── 📖 README.md               # مستندات پروژه
 ```
+## 🤝 مشارکت در توسعه
 
-## Setup Instructions
+ما از مشارکت شما استقبال می‌کنیم!
 
-1. Install dependencies:
-```bash
-pip install -r requirements.txt
+۱. فورک پروژه
+۲. ایجاد برنچ feature: `git checkout -b feature/amazing-feature`
+۳. کامیت تغییرات: `git commit -m 'Add amazing feature'`
+۴. پوش به برنچ: `git push origin feature/amazing-feature`
+۵. ثبت Pull Request
+
+## 📞 پشتیبانی و ارتباط
+
+- 📢 **کانال:** [@UMA_manufacturing402](https://t.me/UMA_manufacturing402)
+
+## 📄 مجوز
+
+این پروژه تحت مجوز MIT منتشر شده است.
+
+---
+
+<div align="center">
+
+**ساخته شده با ❤️ برای انجمن علمی مهندسی ساخت و تولید دانشگاه محقق اردبیلی**
+
+
+</div>
 ```
-
-2. Configure environment variables in `.env` (use `.env.example` as template)
-
-3. Run the bots:
-   - Main bot: `./run_main.sh`
-   - Admin bot: `./run_admin.sh`
-   - Both bots: `./run_both.sh`
-
-4. Stop bots: `./stop_both.sh`
-
-## Features
-
-- Channel membership verification
-- Event and workshop registration
-- Admin message management system
-- Modular handler structure
-- Database management with SQLAlchemy
-- Proxy support
-- Comprehensive logging
-
-## Development
-
-To add new features:
-1. Add handlers in `main/handlers/` or `admin/handlers/`
-2. Add utilities in `main/utils/`
-3. Update database models in `database/models.py`
-4. Add middleware in `main/middleware/`
