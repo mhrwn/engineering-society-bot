@@ -77,71 +77,54 @@ def start_health_server():
     logger.info("🩺 Health check server started in background thread")
     return health_thread
 
-def setup_application():
-    """Setup and return the bot application"""
-    Config.validate()
-
-    # Setup proxy if configured
-    proxy_url = Config.PROXY_URL
-    if proxy_url and proxy_url.startswith("socks5://"):
-        proxy_url = proxy_url.replace("socks5://", "")
-        host, port = proxy_url.split(":")
-        socks.set_default_proxy(socks.SOCKS5, host, int(port))
-        socket.socket = socks.socksocket
-        logger.info(f"🔗 Proxy set: {host}:{port}")
-
-    # Initialize application
-    application = Application.builder()\
-        .token(Config.MAIN_BOT_TOKEN)\
-        .post_init(post_init)\
-        .connection_pool_size(10)\
-        .pool_timeout(30)\
-        .build()
-
-    # Register handlers
-    register_start_handler(application)
-    register_registration_handler(application)
-    register_messaging_handler(application)
-    register_profile_handler(application)
-    register_back_handler(application)
-    
-    application.add_handler(MessageHandler(
-        filters.TEXT & ~filters.COMMAND, 
-        handle_text_messages
-    ))
-
-    return application
-
-async def run_bot():
-    """Run the bot with proper event loop handling"""
+def main():
+    """Main function - simplified for Render"""
     try:
         # Start health server
         start_health_server()
         
         # Setup application
-        application = setup_application()
+        Config.validate()
+
+        # Setup proxy if configured
+        proxy_url = Config.PROXY_URL
+        if proxy_url and proxy_url.startswith("socks5://"):
+            proxy_url = proxy_url.replace("socks5://", "")
+            host, port = proxy_url.split(":")
+            socks.set_default_proxy(socks.SOCKS5, host, int(port))
+            socket.socket = socks.socksocket
+            logger.info(f"🔗 Proxy set: {host}:{port}")
+
+        # Initialize application
+        application = Application.builder()\
+            .token(Config.MAIN_BOT_TOKEN)\
+            .post_init(post_init)\
+            .connection_pool_size(10)\
+            .pool_timeout(30)\
+            .build()
+
+        # Register handlers
+        register_start_handler(application)
+        register_registration_handler(application)
+        register_messaging_handler(application)
+        register_profile_handler(application)
+        register_back_handler(application)
+        
+        application.add_handler(MessageHandler(
+            filters.TEXT & ~filters.COMMAND, 
+            handle_text_messages
+        ))
+
         logger.info("🤖 Starting bot in polling mode...")
         
-        # Run polling with proper configuration
-        await application.run_polling(
+        # Use simple polling without asyncio.run
+        application.run_polling(
             drop_pending_updates=True,
-            allowed_updates=["message", "callback_query"],
-            close_loop=False  # Important: don't close the loop in production
+            allowed_updates=["message", "callback_query"]
         )
         
     except Exception as e:
-        logger.error(f"❌ Error in run_bot: {e}")
-        raise
-
-def main():
-    """Main function with simplified event loop handling"""
-    try:
-        # Use asyncio.run() which handles event loop creation properly
-        asyncio.run(run_bot())
-    except KeyboardInterrupt:
-        logger.info("🛑 Bot stopped by user")
-    except Exception as e:
-        logger.error(f"❌ Fatal error: {e}")
+        logger.error(f"❌ Error starting bot: {e}")
         raise
 
 if __name__ == "__main__":
