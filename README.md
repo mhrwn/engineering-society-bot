@@ -18,8 +18,6 @@
 
 ### نصب و اجرا
 
-```
-
 # کلون کردن پروژه
 git clone https://github.com/mhrwn/engineering-society-bot.git
 cd engineering-society-bot
