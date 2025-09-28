@@ -6,4 +6,5 @@ __pycache__/
 *.log
 logs/
 .DS_Store
-admin/0909.sh
+admin/
+0909.sh
