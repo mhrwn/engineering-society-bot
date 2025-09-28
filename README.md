@@ -11,14 +11,14 @@
 - ✅ **کیبوردهای فارسی** و رابط کاربری زیبا
 - ✅ **اعلان‌های خودکار** و یادآوری رویدادها
 
+
 ### پیش‌نیازها
 - پایتون 3.13
 - توکن ربات تلگرام از [@BotFather](https://t.me/BotFather)
 
 ### نصب و اجرا
 
-
-"""
+'''
 # کلون کردن پروژه
 git clone https://github.com/mhrwn/engineering-society-bot.git
 cd engineering-society-bot
@@ -34,7 +34,8 @@ nano .env
 
 # اجرای ربات
 ./run_main.sh
-"""
+```
+
 
 ## 🏗️ ساختار پروژه
 
