@@ -3,10 +3,6 @@
 
 ربات هوشمند تلگرام برای مدیریت و تعامل با اعضای انجمن علمی مهندسی ساخت و تولید دانشگاه محقق اردبیلی
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
-![Telegram Bot](https://img.shields.io/badge/Telegram-Bot_API-green)
-![SQLAlchemy](https://img.shields.io/badge/ORM-SQLAlchemy-orange)
-
 ## ✨ ویژگی‌های اصلی
 
 ### 🤖 ربات کاربران
@@ -20,12 +16,12 @@
 ## 🚀 راه‌اندازی فوری
 
 ### پیش‌نیازها
-- پایتون ۳.۱۵ یا بالاتر
+- پایتون 3.13
 - توکن ربات تلگرام از [@BotFather](https://t.me/BotFather)
 
 ### نصب و اجرا
 
-```bash
+'''
 # کلون کردن پروژه
 git clone https://github.com/mhrwn/engineering-society-bot.git
 cd engineering-society-bot
@@ -78,12 +74,6 @@ engineering-society-bot/
 ## 🤝 مشارکت در توسعه
 
 ما از مشارکت شما استقبال می‌کنیم!
-
-۱. فورک پروژه
-۲. ایجاد برنچ feature: `git checkout -b feature/amazing-feature`
-۳. کامیت تغییرات: `git commit -m 'Add amazing feature'`
-۴. پوش به برنچ: `git push origin feature/amazing-feature`
-۵. ثبت Pull Request
 
 ## 📞 پشتیبانی و ارتباط
 
