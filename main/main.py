@@ -56,7 +56,7 @@ async def post_init(application):
         logger.error(f"❌ Error setting bot commands: {e}")
 
 def run_health_server():
-    """Run health check server in a separate thread"""
+    """Run health check server in a separate thread with its own event loop"""
     async def health_handler(request):
         return web.Response(text="OK")
     
@@ -66,26 +66,33 @@ def run_health_server():
         app.router.add_get('/', health_handler)
         return app
     
-    async def run_server():
-        app = await create_app()
-        port = int(os.getenv('PORT', 10000))
-        runner = web.AppRunner(app)
-        await runner.setup()
-        site = web.TCPSite(runner, '0.0.0.0', port)
-        await site.start()
-        logger.info(f"🚀 Health check server running on port {port}")
-        # Keep server running forever
-        await asyncio.Future()
+    def start_server():
+        """Start the health server in a separate event loop"""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        async def run_server():
+            app = await create_app()
+            port = int(os.getenv('PORT', 10000))
+            runner = web.AppRunner(app)
+            await runner.setup()
+            site = web.TCPSite(runner, '0.0.0.0', port)
+            await site.start()
+            logger.info(f"🚀 Health check server running on port {port}")
+            # Keep server running forever
+            await asyncio.Future()
+        
+        try:
+            loop.run_until_complete(run_server())
+        except KeyboardInterrupt:
+            pass
+        finally:
+            loop.close()
     
-    # Create new event loop for the health server
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        loop.run_until_complete(run_server())
-    except KeyboardInterrupt:
-        pass
-    finally:
-        loop.close()
+    # Start the server in a daemon thread
+    server_thread = threading.Thread(target=start_server, daemon=True)
+    server_thread.start()
+    return server_thread
 
 def setup_bot():
     """Setup and return the bot application"""
@@ -126,17 +133,18 @@ async def main():
     """Main function to run bot"""
     try:
         # Start health server in separate thread
-        health_thread = threading.Thread(target=run_health_server, daemon=True)
-        health_thread.start()
+        health_thread = run_health_server()
         logger.info("🩺 Health check server started in background thread")
         
         # Setup and start bot
         application = setup_bot()
         logger.info("🤖 Starting bot in polling mode...")
         
+        # Run polling with specific settings for production
         await application.run_polling(
             drop_pending_updates=True,
-            allowed_updates=["message", "callback_query"]
+            allowed_updates=["message", "callback_query"],
+            close_loop=False  # Important: don't close the loop in production
         )
         
     except Exception as e:
@@ -159,6 +167,8 @@ def run_bot():
 if __name__ == "__main__":
     # Check if we're in production (Render sets RENDER env var)
     if os.getenv('RENDER') or os.getenv('PORT'):
+        # Use asyncio.run() for production
         asyncio.run(main())
     else:
+        # Use simple run for development
         run_bot()
