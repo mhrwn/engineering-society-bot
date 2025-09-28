@@ -15,7 +15,7 @@ from main.utils.keyboards import create_main_keyboard
 from config import Config
 import socks
 import socket
-from aiohttp import web
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -55,44 +55,30 @@ async def post_init(application):
     except Exception as e:
         logger.error(f"❌ Error setting bot commands: {e}")
 
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(b'OK')
+    
+    def log_message(self, format, *args):
+        # Disable logging of health checks to reduce noise
+        return
+
 def run_health_server():
-    """Run health check server in a separate thread with its own event loop"""
-    async def health_handler(request):
-        return web.Response(text="OK")
-    
-    async def create_app():
-        app = web.Application()
-        app.router.add_get('/health', health_handler)
-        app.router.add_get('/', health_handler)
-        return app
-    
-    def start_server():
-        """Start the health server in a separate event loop"""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        async def run_server():
-            app = await create_app()
-            port = int(os.getenv('PORT', 10000))
-            runner = web.AppRunner(app)
-            await runner.setup()
-            site = web.TCPSite(runner, '0.0.0.0', port)
-            await site.start()
-            logger.info(f"🚀 Health check server running on port {port}")
-            # Keep server running forever
-            await asyncio.Future()
-        
-        try:
-            loop.run_until_complete(run_server())
-        except KeyboardInterrupt:
-            pass
-        finally:
-            loop.close()
-    
-    # Start the server in a daemon thread
-    server_thread = threading.Thread(target=start_server, daemon=True)
-    server_thread.start()
-    return server_thread
+    """Run a simple health check server using http.server"""
+    port = int(os.getenv('PORT', 10000))
+    server = HTTPServer(('0.0.0.0', port), HealthHandler)
+    logger.info(f"🚀 Simple health check server running on port {port}")
+    server.serve_forever()
+
+def start_health_server():
+    """Start health server in a separate thread"""
+    health_thread = threading.Thread(target=run_health_server, daemon=True)
+    health_thread.start()
+    logger.info("🩺 Health check server started in background thread")
+    return health_thread
 
 def setup_bot():
     """Setup and return the bot application"""
@@ -130,21 +116,19 @@ def setup_bot():
     return application
 
 async def main():
-    """Main function to run bot"""
+    """Main function to run bot in production"""
     try:
         # Start health server in separate thread
-        health_thread = run_health_server()
-        logger.info("🩺 Health check server started in background thread")
+        start_health_server()
         
         # Setup and start bot
         application = setup_bot()
         logger.info("🤖 Starting bot in polling mode...")
         
-        # Run polling with specific settings for production
+        # Run polling
         await application.run_polling(
             drop_pending_updates=True,
-            allowed_updates=["message", "callback_query"],
-            close_loop=False  # Important: don't close the loop in production
+            allowed_updates=["message", "callback_query"]
         )
         
     except Exception as e:
