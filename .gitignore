@@ -36,3 +36,8 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# اضافه کردن مواردی که ممکن است از GitHub باشد
+*.sqlite3
+instance/
+.webassets-cache
