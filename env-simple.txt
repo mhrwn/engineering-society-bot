@@ -1,0 +1,25 @@
+# تنظیمات ربات اصلی
+MAIN_BOT_TOKEN="YOUR_MAIN_BOT_TOKEN_HERE"
+ADMIN_BOT_TOKEN="YOUR_ADMIN_BOT_TOKEN_HERE"
+
+# شناسه‌های ادمین (با کاما جدا کنید)
+ADMIN_CHAT_IDS=123456789,987654321
+
+# تنظیمات انجمن
+SOCIETY_NAME=انجمن علمی مهندسی ساخت و تولید
+UNIVERSITY=دانشگاه محقق اردبیلی
+CONTACT_EMAIL=example@uma.ac.ir
+CONTACT_PHONE=+98123456789
+
+# تنظیمات کانال
+CHANNEL_ID=-1000000000000
+CHANNEL_USERNAME=@your_channel_username
+CHANNEL_URL=https://t.me/your_channel_url
+
+# تنظیمات پروکسی (اختیاری)
+PROXY_URL=socks5://127.0.0.1:*****
+
+# تنظیمات دیتابیس (اگر استفاده می‌کنید)
+DATABASE_URL=sqlite:///bot_database.db
+# محدودیت پیام‌های روزانه
+MAX_MESSAGES_PER_DAY=1
